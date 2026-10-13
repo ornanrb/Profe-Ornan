@@ -1,0 +1,12 @@
+{
+  "name": "Profe Ornan",
+  "description": "Profe Ornan: Profesor virtual inteligente y multimodal para el sistema educativo de la República Dominicana, con interacción por voz masculina en tiempo real, formulación matemática en LaTeX y generación de recursos interactivos.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "display-capture"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

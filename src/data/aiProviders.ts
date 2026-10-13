@@ -1,0 +1,155 @@
+import { AIProviderId, AIProviderInfo } from '../types';
+
+export const AI_PROVIDERS: Record<AIProviderId, AIProviderInfo> = {
+  google: {
+    id: 'google',
+    name: 'Google (Gemini)',
+    company: 'Google DeepMind',
+    iconName: 'google',
+    tagline: 'Motor multimodal predeterminado con soporte de voz en tiempo real, visión pedagógica y LaTeX',
+    keyPlaceholder: 'Opcional: introduce tu propia Gemini API Key o usa la del servidor',
+    keyPrefix: 'AIzaSy',
+    keyHelpText: 'Por defecto, la aplicación utiliza la clave de servidor integrada de Google AI Studio. Si prefieres utilizar tu propia cuota o clave personal, ingrésala aquí.',
+    docUrl: 'https://aistudio.google.com/app/apikey',
+    defaultModel: 'gemini-3.8-flash',
+    hasServerFallback: true,
+    models: [
+      {
+        id: 'gemini-3.8-flash',
+        name: 'Gemini 3.8 Flash',
+        description: 'Velocidad de respuesta ultrarrápida, soporte multimodal y formateo LaTeX impecable',
+        badge: 'Recomendado',
+      },
+      {
+        id: 'gemini-2.5-flash',
+        name: 'Gemini 2.5 Flash',
+        description: 'Balance ideal entre latencia y capacidad educativa general',
+      },
+      {
+        id: 'gemini-2.5-pro',
+        name: 'Gemini 2.5 Pro',
+        description: 'Máxima profundidad conceptual y razonamiento para planificaciones complejas',
+      },
+    ],
+  },
+  openai: {
+    id: 'openai',
+    name: 'OpenAI (ChatGPT)',
+    company: 'OpenAI',
+    iconName: 'openai',
+    tagline: 'Modelos GPT de última generación con amplio conocimiento curricular y resolución de problemas',
+    keyPlaceholder: 'sk-proj-... o sk-...',
+    keyPrefix: 'sk-',
+    keyHelpText: 'Introduce tu API Key de OpenAI. Tu clave se procesa de forma segura a través del proxy del servidor y se guarda localmente en tu navegador.',
+    docUrl: 'https://platform.openai.com/api-keys',
+    defaultModel: 'gpt-4o',
+    hasServerFallback: false,
+    models: [
+      {
+        id: 'gpt-4o',
+        name: 'GPT-4o',
+        description: 'Modelo insignia con razonamiento avanzado en ciencias y matemáticas',
+        badge: 'Recomendado',
+      },
+      {
+        id: 'gpt-4o-mini',
+        name: 'GPT-4o mini',
+        description: 'Versión ágil y económica ideal para consultas rápidas',
+      },
+      {
+        id: 'o3-mini',
+        name: 'o3-mini',
+        description: 'Modelo de razonamiento matemático profundo y verificación de pasos',
+      },
+    ],
+  },
+  anthropic: {
+    id: 'anthropic',
+    name: 'Anthropic (Claude)',
+    company: 'Anthropic',
+    iconName: 'anthropic',
+    tagline: 'Pensamiento pedagógico estructurado, explicaciones paso a paso detalladas y gran calidez didáctica',
+    keyPlaceholder: 'sk-ant-api03-...',
+    keyPrefix: 'sk-ant-',
+    keyHelpText: 'Introduce tu API Key de Anthropic para habilitar Claude en el Profe Ornan.',
+    docUrl: 'https://console.anthropic.com/settings/keys',
+    defaultModel: 'claude-3-7-sonnet-20250219',
+    hasServerFallback: false,
+    models: [
+      {
+        id: 'claude-3-7-sonnet-20250219',
+        name: 'Claude 3.7 Sonnet',
+        description: 'Modelo híbrido con razonamiento reflexivo superior y precisión didáctica',
+        badge: 'Recomendado',
+      },
+      {
+        id: 'claude-3-5-sonnet-20241022',
+        name: 'Claude 3.5 Sonnet',
+        description: 'Rigor pedagógico comprobado y formateo matemático estructurado',
+      },
+      {
+        id: 'claude-3-5-haiku-20241022',
+        name: 'Claude 3.5 Haiku',
+        description: 'Respuestas instantáneas y concisas para interacción ágil',
+      },
+    ],
+  },
+  deepseek: {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    company: 'DeepSeek AI',
+    iconName: 'deepseek',
+    tagline: 'Especialista en razonamiento matemático, formulaciones algebraicas y resolución paso a paso',
+    keyPlaceholder: 'sk-...',
+    keyPrefix: 'sk-',
+    keyHelpText: 'Introduce tu API Key de DeepSeek para conectar sus modelos de alto rendimiento matemático.',
+    docUrl: 'https://platform.deepseek.com/api_keys',
+    defaultModel: 'deepseek-chat',
+    hasServerFallback: false,
+    models: [
+      {
+        id: 'deepseek-chat',
+        name: 'DeepSeek-V3',
+        description: 'Excelente modelo conversacional general con sólida base curricular',
+        badge: 'Recomendado',
+      },
+      {
+        id: 'deepseek-reasoner',
+        name: 'DeepSeek-R1',
+        description: 'Razonamiento matemático riguroso con cadena de pensamiento explícita',
+      },
+    ],
+  },
+  groq: {
+    id: 'groq',
+    name: 'Groq (Llama 3)',
+    company: 'Groq Inc.',
+    iconName: 'groq',
+    tagline: 'Inferencia a velocidad milisegundo impulsada por chips LPU con modelos Llama de Meta',
+    keyPlaceholder: 'gsk_...',
+    keyPrefix: 'gsk_',
+    keyHelpText: 'Introduce tu API Key de Groq para disfrutar de respuestas ultrarrápidas.',
+    docUrl: 'https://console.groq.com/keys',
+    defaultModel: 'llama-3.3-70b-versatile',
+    hasServerFallback: false,
+    models: [
+      {
+        id: 'llama-3.3-70b-versatile',
+        name: 'Llama 3.3 70B',
+        description: 'Modelo abierto de 70B con capacidades equivalentes a los líderes de la industria',
+        badge: 'Recomendado',
+      },
+      {
+        id: 'mixtral-8x7b-32768',
+        name: 'Mixtral 8x7B',
+        description: 'Arquitectura Mixture-of-Experts para tareas diversas y alta velocidad',
+      },
+    ],
+  },
+};
+
+export const DEFAULT_AI_CONFIG = {
+  provider: 'google' as AIProviderId,
+  apiKey: '',
+  model: 'gemini-3.8-flash',
+};
