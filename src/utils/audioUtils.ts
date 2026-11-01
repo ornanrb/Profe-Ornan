@@ -39,28 +39,45 @@ export class PcmAudioPlayer {
     return this.audioCtx;
   }
 
-  public playChunk(base64Pcm: string, onEnded?: () => void) {
+  public async playChunk(base64Audio: string, onEnded?: () => void) {
     try {
       if (onEnded) this.onEndedCallback = onEnded;
       const ctx = this.getAudioContext();
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
 
       // Decode base64 to binary
-      const binaryString = atob(base64Pcm);
+      const binaryString = atob(base64Audio);
       const len = binaryString.length;
       const bytes = new Uint8Array(len);
       for (let i = 0; i < len; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
-      // Convert 16-bit PCM to Float32
-      const int16 = new Int16Array(bytes.buffer);
-      const float32 = new Float32Array(int16.length);
-      for (let i = 0; i < int16.length; i++) {
-        float32[i] = int16[i] / 32768.0;
-      }
+      // Check if format is an encoded audio container (e.g. MP3/WAV with ID3/RIFF header)
+      const isCompressed =
+        (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) || // ID3 (mp3)
+        (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) || // MPEG frame sync (mp3)
+        (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46); // RIFF (wav)
 
-      const buffer = ctx.createBuffer(1, float32.length, 24000);
-      buffer.copyToChannel(float32, 0);
+      let buffer: AudioBuffer;
+
+      if (isCompressed) {
+        // Use Web Audio built-in decoder for standard audio formats
+        buffer = await ctx.decodeAudioData(bytes.buffer.slice(0));
+      } else {
+        // Raw 16-bit PCM (24kHz single channel)
+        const sampleCount = Math.floor(bytes.byteLength / 2);
+        const int16 = new Int16Array(bytes.buffer, bytes.byteOffset, sampleCount);
+        const float32 = new Float32Array(int16.length);
+        for (let i = 0; i < int16.length; i++) {
+          float32[i] = int16[i] / 32768.0;
+        }
+
+        buffer = ctx.createBuffer(1, float32.length, 24000);
+        buffer.copyToChannel(float32, 0);
+      }
 
       const source = ctx.createBufferSource();
       source.buffer = buffer;
@@ -90,8 +107,12 @@ export class PcmAudioPlayer {
         }
       };
     } catch (e) {
-      console.error('Error playing PCM chunk:', e);
+      console.error('Error playing audio chunk, invoking completion callback:', e);
       this.isPlaying = false;
+      if (this.onEndedCallback) {
+        this.onEndedCallback();
+        this.onEndedCallback = undefined;
+      }
     }
   }
 
@@ -115,12 +136,45 @@ export class PcmAudioPlayer {
 }
 
 /**
+ * Removes system prompt instructions, tone directions, and tutor configurations
+ * (e.g. "(lee con tono amable...)", "[con tono motivador]", "Lee con tono amable:", etc.)
+ * so audio strictly only delivers the pedagogical answer.
+ */
+export function stripMetaAndToneInstructions(text: string): string {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    // Parenthetical instructions: (lee con tono amable...), (tono reflexivo), (voz tranquila), etc.
+    .replace(/\((?:lee con|le[eí]r? con|tono|con tono|habla con|voz|acotaci[oó]n|modo|indicaci[oó]n|estilo|configuraci[oó]n|instrucci[oó]n)[^)]*\)/gi, '')
+    // Bracketed instructions: [lee con tono amable], [tono motivador], etc.
+    .replace(/\[(?:lee con|le[eí]r? con|tono|con tono|habla con|voz|acotaci[oó]n|modo|indicaci[oó]n|estilo|configuraci[oó]n|instrucci[oó]n)[^\]]*\]/gi, '')
+    // Asterisk instructions: *lee con tono amable*, *tono pausado*, etc.
+    .replace(/\*(?:lee con|le[eí]r? con|tono|con tono|habla con|voz|acotaci[oó]n|modo|indicaci[oó]n|estilo|configuraci[oó]n|instrucci[oó]n)[^*]*\*/gi, '')
+    // Configuration / tone prefixes: "Configuración del tutor: ...", "Instrucciones: ...", "Modo: ..."
+    .replace(/(?:configuraci[oó]n(?: del tutor)?|instrucci[oó]n(?: para el tutor)?|modo de respuesta)\s*:\s*/gi, '')
+    // Leading tone commands at start of line: "Lee con tono amable: ...", "Tono amable: ..."
+    .replace(/^(?:lee|habla|responde|le[eí]do)\s+(?:con\s+)?(?:un\s+)?tono\s+[a-záéíóúñ\s,]+[:.-]\s*/gi, '')
+    .replace(/^[\s\S]*?(?:lee con tono [^\n.:]*[.:]?\s*)/gi, '')
+    .replace(/^(?:tono amable|tono motivador|tono c[aá]lido|tono pausado|tono entusiasta|tono emp[aá]tico)[^\n.:]*[.:]?\s*/gi, '')
+    .replace(/^(?:Profesor|Profe Ornan|Tutor|Docente):\s*/gi, '')
+    // Filter out any accidental LaTeX meta-labels, tags or prefixes:
+    .replace(/\[(?:c[oó]digo\s+)?latex\]/gi, '')
+    .replace(/\((?:en\s+|c[oó]digo\s+)?latex\)/gi, '')
+    .replace(/\b(?:en\s+)?latex\s*:\s*/gi, '')
+    .replace(/\b(?:f[oó]rmula|c[oó]digo|expresi[oó]n)\s+(?:en\s+)?latex\b/gi, 'fórmula matemática')
+    .replace(/\b(?:escrita|formulada|expresada)\s+en\s+latex\b/gi, 'con formulación matemática')
+    .replace(/\blatex\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Cleans LaTeX and markdown notation so mathematical formulas are read
  * naturally and phonetically in Spanish by the speech synthesizer.
  */
 export function cleanLatexForSpeech(raw: string): string {
   if (!raw) return '';
-  return raw
+  const withoutMeta = stripMetaAndToneInstructions(raw);
+  return withoutMeta
     .replace(/\$\$([\s\S]*?)\$\$/g, (_, m) => m)
     .replace(/\$([^\$\n]+?)\$/g, (_, m) => m)
     .replace(/\\left\(/g, '(')
@@ -181,7 +235,10 @@ function findMasculineSpanishVoice(voices: SpeechSynthesisVoice[]): SpeechSynthe
   return voices[0];
 }
 
-// Browser speech synthesis fallback with natural Dominican / Spanish accent and masculine tone
+// Global reference set to protect utterances from Chromium V8 garbage collection
+const activeUtterances = new Set<SpeechSynthesisUtterance>();
+
+// Browser speech synthesis with natural Dominican / Spanish accent and masculine tone
 export function speakWithBrowserSpeech(
   text: string,
   onStart?: () => void,
@@ -191,52 +248,98 @@ export function speakWithBrowserSpeech(
     return () => {};
   }
 
-  window.speechSynthesis.cancel();
+  // Clear any stuck audio queue and resume immediately
+  try {
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
+  } catch (e) {
+    // ignore
+  }
+
   const spokenText = cleanLatexForSpeech(text);
   if (!spokenText) return () => {};
 
-  const utterance = new SpeechSynthesisUtterance(spokenText);
-  utterance.lang = 'es-DO';
-  utterance.rate = 0.98;
-  utterance.pitch = 0.90; // Resonant serene masculine teacher pitch
+  let isCancelled = false;
 
-  const applyVoiceAndSpeak = () => {
-    const voices = window.speechSynthesis.getVoices();
-    const voice = findMasculineSpanishVoice(voices);
-    if (voice) {
-      utterance.voice = voice;
-    }
+  const playUtterance = () => {
+    if (isCancelled) return;
+    try {
+      window.speechSynthesis.resume();
+      const utterance = new SpeechSynthesisUtterance(spokenText);
+      utterance.rate = 0.98;
+      utterance.pitch = 0.92; // Resonant serene masculine teacher pitch
+      utterance.volume = 1.0;
 
-    if (onStart) utterance.onstart = onStart;
-    if (onEnd) utterance.onend = onEnd;
-    utterance.onerror = (e) => {
-      console.warn('Speech synthesis event notice:', e);
+      const voices = window.speechSynthesis.getVoices();
+      const voice = findMasculineSpanishVoice(voices);
+      if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+      } else {
+        utterance.lang = 'es-ES';
+      }
+
+      utterance.onstart = () => {
+        if (!isCancelled && onStart) onStart();
+      };
+
+      const cleanup = () => {
+        activeUtterances.delete(utterance);
+        (window as any).__profeOrnanUtterance = null;
+      };
+
+      utterance.onend = () => {
+        cleanup();
+        if (!isCancelled && onEnd) onEnd();
+      };
+
+      utterance.onerror = (e) => {
+        console.warn('Speech synthesis event notice:', e);
+        cleanup();
+        if (!isCancelled && onEnd) onEnd();
+      };
+
+      // Guard against Chromium garbage collector aborting speech
+      activeUtterances.add(utterance);
+      (window as any).__profeOrnanUtterance = utterance;
+
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn('Speech synthesis playback error:', err);
       if (onEnd) onEnd();
-    };
-
-    window.speechSynthesis.speak(utterance);
+    }
   };
 
   const initialVoices = window.speechSynthesis.getVoices();
   if (initialVoices.length > 0) {
-    applyVoiceAndSpeak();
+    playUtterance();
   } else {
-    // Wait for voices to load in Chromium / WebKit
+    let triggered = false;
     const onVoicesChanged = () => {
+      if (triggered) return;
+      triggered = true;
       window.speechSynthesis.onvoiceschanged = null;
-      applyVoiceAndSpeak();
+      playUtterance();
     };
     window.speechSynthesis.onvoiceschanged = onVoicesChanged;
-    // Timeout fallback in case onvoiceschanged never fires
+    // Timeout fallback if onvoiceschanged doesn't fire immediately
     setTimeout(() => {
-      if (!utterance.voice) {
-        applyVoiceAndSpeak();
+      if (!triggered) {
+        triggered = true;
+        playUtterance();
       }
-    }, 200);
+    }, 120);
   }
 
   return () => {
-    window.speechSynthesis.cancel();
+    isCancelled = true;
+    try {
+      window.speechSynthesis.cancel();
+      activeUtterances.clear();
+      (window as any).__profeOrnanUtterance = null;
+    } catch (e) {
+      // ignore
+    }
   };
 }
 

@@ -17,6 +17,39 @@ import {
 import { TeacherLessonPlan } from '../types';
 
 /**
+ * Converts LaTeX formulas and symbols into clean typography for Microsoft Word (.docx)
+ * e.g. "$i = \sqrt{-1}$, tal que $i^2 = -1$" -> "i = √(-1), tal que i² = -1"
+ */
+function formatMathForDocx(str: string): string {
+  if (!str || typeof str !== 'string') return '';
+  return str
+    .replace(/\$\$([\s\S]*?)\$\$/g, (_, m) => m.trim())
+    .replace(/\$([^\$\n]+?)\$/g, (_, m) => m.trim())
+    .replace(/\\left\(/g, '(')
+    .replace(/\\right\)/g, ')')
+    .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')
+    .replace(/\\sqrt\[([^\]]+)\]\{([^}]+)\}/g, '$1√($2)')
+    .replace(/\\sqrt\s*(-?[0-9a-zA-Z]+)/g, '√($1)')
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)')
+    .replace(/\\cdot/g, '·')
+    .replace(/\\times/g, '×')
+    .replace(/\\pm/g, '±')
+    .replace(/\\leq/g, '≤')
+    .replace(/\\geq/g, '≥')
+    .replace(/\\neq/g, '≠')
+    .replace(/\\Delta/g, 'Δ')
+    .replace(/\\pi/g, 'π')
+    .replace(/\^2/g, '²')
+    .replace(/\^3/g, '³')
+    .replace(/\^\{-1\}/g, '⁻¹')
+    .replace(/\^([0-9]+)/g, '^$1')
+    .replace(/_([0-9a-zA-Z]+)/g, '_$1')
+    .replace(/\\[a-zA-Z]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Generates and downloads an official-style Microsoft Word (.docx) document
  * for a MINERD Teacher Lesson Plan.
  */
@@ -138,7 +171,7 @@ export async function downloadLessonPlanAsWord(
                         spacing: { before: 80 },
                         children: [
                           new TextRun({
-                            text: plan.title || 'Tema Curricular',
+                            text: formatMathForDocx(plan.title || 'Tema Curricular'),
                             bold: true,
                             size: 22,
                             color: 'FFD166',
@@ -197,7 +230,7 @@ export async function downloadLessonPlanAsWord(
                     spacing: { before: 60, after: 60 },
                     children: [
                       new TextRun({
-                        text: comp,
+                        text: formatMathForDocx(comp),
                         size: 20,
                         color: '1F2937',
                       }),
@@ -225,7 +258,7 @@ export async function downloadLessonPlanAsWord(
                     spacing: { before: 60, after: 60 },
                     children: [
                       new TextRun({
-                        text: comp,
+                        text: formatMathForDocx(comp),
                         size: 20,
                         color: '1F2937',
                       }),
@@ -263,8 +296,8 @@ export async function downloadLessonPlanAsWord(
                       new Paragraph({
                         children: [
                           new TextRun({
-                            text: plan.learningSituation ||
-                              'Los estudiantes del centro educativo analizan y aplican los contenidos curriculares abordando problemáticas reales de su comunidad, fortaleciendo el pensamiento crítico, la investigación y la colaboración activa.',
+                            text: formatMathForDocx(plan.learningSituation ||
+                              'Los estudiantes del centro educativo analizan y aplican los contenidos curriculares abordando problemáticas reales de su comunidad, fortaleciendo el pensamiento crítico, la investigación y la colaboración activa.'),
                             size: 20,
                             italics: true,
                             color: '111827',
@@ -332,7 +365,7 @@ export async function downloadLessonPlanAsWord(
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: seq.teacherActivity || 'Guía y orienta el proceso de aprendizaje.',
+                              text: formatMathForDocx(seq.teacherActivity || 'Guía y orienta el proceso de aprendizaje.'),
                               size: 19,
                               color: '1F2937',
                             }),
@@ -347,7 +380,7 @@ export async function downloadLessonPlanAsWord(
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: seq.studentActivity || 'Participan activamente e interactúan con sus pares.',
+                              text: formatMathForDocx(seq.studentActivity || 'Participan activamente e interactúan con sus pares.'),
                               size: 19,
                               color: '1F2937',
                             }),
@@ -363,8 +396,8 @@ export async function downloadLessonPlanAsWord(
                           children: [
                             new TextRun({
                               text: Array.isArray(seq.resources)
-                                ? seq.resources.join(', ')
-                                : (seq.resources || 'Pizarra, Cuaderno, Guía curricular'),
+                                ? seq.resources.map(formatMathForDocx).join(', ')
+                                : formatMathForDocx(seq.resources || 'Pizarra, Cuaderno, Guía curricular'),
                               size: 18,
                               color: '4B5563',
                             }),
@@ -406,7 +439,7 @@ export async function downloadLessonPlanAsWord(
                               new Paragraph({
                                 children: [
                                   new TextRun({
-                                    text: rubric.indicator,
+                                    text: formatMathForDocx(rubric.indicator),
                                     bold: true,
                                     size: 19,
                                     color: primaryColor,
@@ -422,7 +455,7 @@ export async function downloadLessonPlanAsWord(
                               new Paragraph({
                                 children: [
                                   new TextRun({
-                                    text: rubric.levels?.receptive || 'Identifica nociones elementales.',
+                                    text: formatMathForDocx(rubric.levels?.receptive || 'Identifica nociones elementales.'),
                                     size: 18,
                                   }),
                                 ],
@@ -436,7 +469,7 @@ export async function downloadLessonPlanAsWord(
                               new Paragraph({
                                 children: [
                                   new TextRun({
-                                    text: rubric.levels?.basic || 'Aplica conceptos con supervisión directa.',
+                                    text: formatMathForDocx(rubric.levels?.basic || 'Aplica conceptos con supervisión directa.'),
                                     size: 18,
                                   }),
                                 ],
@@ -450,7 +483,7 @@ export async function downloadLessonPlanAsWord(
                               new Paragraph({
                                 children: [
                                   new TextRun({
-                                    text: rubric.levels?.autonomous || 'Resuelve de forma independiente.',
+                                    text: formatMathForDocx(rubric.levels?.autonomous || 'Resuelve de forma independiente.'),
                                     size: 18,
                                   }),
                                 ],
@@ -464,7 +497,7 @@ export async function downloadLessonPlanAsWord(
                               new Paragraph({
                                 children: [
                                   new TextRun({
-                                    text: rubric.levels?.strategic || 'Propone soluciones innovadoras y argumentadas.',
+                                    text: formatMathForDocx(rubric.levels?.strategic || 'Propone soluciones innovadoras y argumentadas.'),
                                     size: 18,
                                   }),
                                 ],

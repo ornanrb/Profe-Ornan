@@ -133,25 +133,29 @@ export const TeacherToolbox: React.FC<TeacherToolboxProps> = ({
               </button>
             )}
 
-            {/* Action 2: Quiz Generator */}
-            <button
-              onClick={() => onGenerateQuizRequest(topic || 'Evaluación Curricular')}
-              disabled={isLoading}
-              className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all"
-            >
-              <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
-              <span>Crear Quiz Formativo</span>
-            </button>
+            {/* Action 2: Quiz Generator (only shown before plan is generated) */}
+            {!activePlan && (
+              <button
+                onClick={() => onGenerateQuizRequest(topic || 'Evaluación Curricular')}
+                disabled={isLoading}
+                className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
+                <span>Crear Quiz Formativo</span>
+              </button>
+            )}
 
-            {/* Action 3: Rubric */}
-            <button
-              onClick={() => onGenerateRubricRequest(topic || 'Criterios de Evaluación')}
-              disabled={isLoading}
-              className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all"
-            >
-              <Award className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Diseñar Rúbrica Analítica</span>
-            </button>
+            {/* Action 3: Rubric (only shown before plan is generated) */}
+            {!activePlan && (
+              <button
+                onClick={() => onGenerateRubricRequest(topic || 'Criterios de Evaluación')}
+                disabled={isLoading}
+                className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Award className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Diseñar Rúbrica Analítica</span>
+              </button>
+            )}
           </div>
         </div>
 

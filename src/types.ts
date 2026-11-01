@@ -247,3 +247,19 @@ export interface ChatMessage {
   audioBase64?: string;
   isStreaming?: boolean;
 }
+
+export interface AnalyzedMediaItem {
+  id: string;
+  type: 'camera' | 'screen' | 'file';
+  name: string;
+  mimeType: string;
+  dataBase64: string;
+  previewUrl?: string;
+  timestamp: number;
+  detectedContent?: string;
+  diagnosis?: string;
+  keyConcepts?: string[];
+  questionAsked?: string;
+  notes?: string;
+}
+

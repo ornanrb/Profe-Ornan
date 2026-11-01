@@ -11,7 +11,7 @@ export interface LaTeXRendererProps {
 }
 
 /**
- * Safe Inline Math component using react-katex with error fallback
+ * Safe Inline Math component using KaTeX renderToString for guaranteed rock-solid stability
  */
 export const SafeInlineMath: React.FC<{ math: string; className?: string }> = ({
   math,
@@ -19,36 +19,57 @@ export const SafeInlineMath: React.FC<{ math: string; className?: string }> = ({
 }) => {
   const cleaned = useMemo(() => cleanFormulaString(math), [math]);
 
+  const html = useMemo(() => {
+    if (!cleaned) return '';
+    try {
+      return katex.renderToString(cleaned, {
+        displayMode: false,
+        throwOnError: false,
+        strict: false,
+        trust: true,
+      });
+    } catch {
+      try {
+        // If unescaped Spanish words exist inside math (e.g. "tal que"), wrap them in \text{...}
+        const withText = cleaned.replace(/\b([a-zA-ZáéíóúñÁÉÍÓÚ]{3,})\b/g, (w) => {
+          const allowed = [
+            'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
+            'log', 'ln', 'exp', 'lim', 'det', 'min', 'max', 'deg', 'gcd', 'lcm'
+          ];
+          return allowed.includes(w.toLowerCase()) ? w : `\\text{ ${w} }`;
+        });
+        return katex.renderToString(withText, {
+          displayMode: false,
+          throwOnError: false,
+          strict: false,
+          trust: true,
+        });
+      } catch {
+        return '';
+      }
+    }
+  }, [cleaned]);
+
   if (!cleaned) return null;
 
-  try {
+  if (html) {
     return (
-      <span className={`inline-math-wrapper inline-block mx-0.5 align-baseline ${className}`}>
-        <InlineMath math={cleaned} />
-      </span>
+      <span
+        className={`inline-math-wrapper inline-block mx-0.5 align-baseline ${className}`}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     );
-  } catch (err) {
-    // Graceful fallback to katex string rendering or clean code
-    try {
-      const html = katex.renderToString(cleaned, { displayMode: false, throwOnError: false });
-      return (
-        <span
-          className={`inline-math-wrapper inline-block mx-0.5 align-baseline ${className}`}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      );
-    } catch {
-      return (
-        <code className="px-1 py-0.5 rounded bg-slate-100 text-slate-800 font-mono text-[11px]">
-          {cleaned}
-        </code>
-      );
-    }
   }
+
+  return (
+    <code className="px-1 py-0.5 rounded bg-slate-100 text-slate-800 font-mono text-[11px]">
+      {cleaned}
+    </code>
+  );
 };
 
 /**
- * Safe Block Math component using react-katex with copy button and error fallback
+ * Safe Block Math component using KaTeX renderToString with copy button
  */
 export const SafeBlockMath: React.FC<{
   math: string;
@@ -57,6 +78,36 @@ export const SafeBlockMath: React.FC<{
 }> = ({ math, className = '', showCopy = true }) => {
   const [copied, setCopied] = useState(false);
   const cleaned = useMemo(() => cleanFormulaString(math), [math]);
+
+  const html = useMemo(() => {
+    if (!cleaned) return '';
+    try {
+      return katex.renderToString(cleaned, {
+        displayMode: true,
+        throwOnError: false,
+        strict: false,
+        trust: true,
+      });
+    } catch {
+      try {
+        const withText = cleaned.replace(/\b([a-zA-ZáéíóúñÁÉÍÓÚ]{3,})\b/g, (w) => {
+          const allowed = [
+            'sin', 'cos', 'tan', 'cot', 'sec', 'csc',
+            'log', 'ln', 'exp', 'lim', 'det', 'min', 'max', 'deg', 'gcd', 'lcm'
+          ];
+          return allowed.includes(w.toLowerCase()) ? w : `\\text{ ${w} }`;
+        });
+        return katex.renderToString(withText, {
+          displayMode: true,
+          throwOnError: false,
+          strict: false,
+          trust: true,
+        });
+      } catch {
+        return '';
+      }
+    }
+  }, [cleaned]);
 
   if (!cleaned) return null;
 
@@ -67,35 +118,25 @@ export const SafeBlockMath: React.FC<{
     setTimeout(() => setCopied(false), 2000);
   };
 
-  let mathElement: React.ReactNode;
-  try {
-    mathElement = <BlockMath math={cleaned} />;
-  } catch {
-    try {
-      const html = katex.renderToString(cleaned, { displayMode: true, throwOnError: false });
-      mathElement = <div dangerouslySetInnerHTML={{ __html: html }} />;
-    } catch {
-      mathElement = (
-        <pre className="font-mono text-xs overflow-x-auto text-slate-800 p-2">
-          {cleaned}
-        </pre>
-      );
-    }
-  }
-
   return (
     <div
       className={`katex-display-wrapper relative my-3 p-3.5 rounded-xl bg-slate-900/[0.03] dark:bg-slate-900/30 border border-slate-200/90 dark:border-slate-800 overflow-x-auto group transition-all hover:border-blue-300 ${className}`}
     >
       <div className="flex items-center justify-center min-w-full text-slate-900 dark:text-slate-100 py-1">
-        {mathElement}
+        {html ? (
+          <div dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          <pre className="font-mono text-xs overflow-x-auto text-slate-800 p-2">
+            {cleaned}
+          </pre>
+        )}
       </div>
 
       {showCopy && (
         <button
           onClick={handleCopy}
           className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity shadow-2xs text-xs flex items-center gap-1 cursor-pointer"
-          title="Copiar fórmula LaTeX"
+          title="Copiar fórmula matemática"
         >
           {copied ? (
             <>
@@ -147,8 +188,9 @@ function parseInlineLatex(text: string, keyPrefix: string): React.ReactNode[] {
     // Case 1: Math $...$
     if (matchedStr.startsWith('$') && matchedStr.endsWith('$')) {
       const math = match[2];
-      // If purely natural language and not a formula, display as text
-      if (isNaturalLanguageText(math)) {
+      // Only treat as natural language text if it contains words and NO LaTeX commands or math symbols
+      const hasMathMarkers = /\\|[=+\-*/^<>_±×÷≠≤≥²³⁴√]/.test(math);
+      if (isNaturalLanguageText(math) && !hasMathMarkers) {
         nodes.push(<React.Fragment key={`${keyPrefix}-t-${keyIdx++}`}>{math}</React.Fragment>);
       } else {
         nodes.push(

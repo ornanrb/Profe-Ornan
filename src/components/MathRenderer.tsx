@@ -176,10 +176,10 @@ export const MathFormula: React.FC<MathFormulaProps> = ({
           <button
             onClick={handleCopy}
             className="absolute top-2 right-2 p-1 rounded-md bg-white border border-slate-200 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity hover:text-slate-900 hover:bg-slate-50 text-[10px] flex items-center gap-1 shadow-2xs"
-            title="Copiar fórmula LaTeX"
+            title="Copiar fórmula matemática"
           >
             {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-            <span className="sr-only">Copiar LaTeX</span>
+            <span className="sr-only">Copiar fórmula</span>
           </button>
         )}
       </div>

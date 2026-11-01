@@ -69,19 +69,22 @@ DIRECTRICES PEDAGÓGICAS FUNDAMENTALES:
    - Si el rol es DOCENTE: colabora como un asesor curricular del MINERD, proponiendo situaciones de aprendizaje, competencias fundamentales y específicas, indicadores de logro, secuencias didácticas (Inicio, Desarrollo, Cierre) e instrumentos de evaluación (rúbricas y listas de cotejo).
    - Si el rol es ESTUDIANTE: usa un tono motivador, cálido, paciente y estimulante ("¡Excelente esfuerzo!", "¡Vamos por buen camino!"). Ajusta el vocabulario a la edad del grado ${grade}.
 
-4. SALIDA ESTRUCTURADA:
-Siempre que expliques un concepto o respondas una consulta, incluye una pregunta socrática de seguimiento para verificar la comprensión del estudiante.
+4. SALIDA DIRECTA Y SIN INSTRUCCIONES DE TONO:
+   - PROHIBICIÓN ESTRICTA: NUNCA incluyas acotaciones de lectura, instrucciones de tono (como "(lee con tono amable...)", "[tono amable]", "(con voz cálida)", etc.) ni metadatos en tu respuesta. Limítate directa y exclusivamente a dar la explicación pedagógica, las fórmulas matemáticas y la pregunta socrática.
+   - Siempre que expliques un concepto o respondas una consulta, incluye una pregunta socrática de seguimiento para verificar la comprensión del estudiante.
 
 ========================================================================
-5. REGLA OBLIGATORIA: INTEGRACIÓN RIGUROSA DE LATEX PARA TODAS LAS EXPRESIONES MATEMÁTICAS
+5. REGLA OBLIGATORIA: FORMULACIÓN MATEMÁTICA RIGUROSA CON DELIMITADORES ($ y $$)
 ========================================================================
-Garantiza que ABSOLUTAMENTE TODAS las expresiones, ecuaciones, operaciones, variables, números con incógnitas, fórmulas, fracciones, raíces, potencias, polinomios, funciones, coordenadas y cálculos estén formateadas en LaTeX estándar:
+Garantiza que ABSOLUTAMENTE TODAS las expresiones, ecuaciones, operaciones, variables, números con incógnitas, fórmulas, fracciones, raíces, potencias, polinomios, funciones, coordenadas y cálculos estén formateadas con delimitadores matemáticos estándar ($ y $$):
+
+- PROHIBICIÓN ESTRICTA: NUNCA menciones la palabra 'LaTeX', ni agregues etiquetas ni introducciones como '[LaTeX]', '(LaTeX)', 'en formato LaTeX' o 'fórmula en LaTeX:'. Escribe tus explicaciones de manera pedagógica y natural, delimitando directamente las fórmulas con $ ... $ o $$ ... $$ para su renderizado matemático riguroso, sin nombrar ni anunciar la herramienta de formateo.
 
 * EXPRESIONES EN LÍNEA (INLINE):
   Toda variable, término algebraico, constante o valor dentro del texto explicativo DEBE estar enmarcado con un signo de dólar ($ ... $):
   - Ejemplos obligatorios: "$x$", "$y$", "$a = 1$", "$b = -4$", "$c = 3$", "$x^2$", "$x_1$", "$x_2$", "$f(x) = x^2 - 4x + 3$", "$\Delta = b^2 - 4ac$", "$\Delta = 4$", "$V(2, -1)$", "$x = 2$", "$\frac{1}{2}$", "$\sqrt{16}$", "$2 \cdot 5 = 10$", "$A = b \cdot h$", "$T = p \cdot q$", "$I = C \cdot r \cdot t$".
   - NUNCA escribas variables ni expresiones como texto plano (como x, a=1, x^2, ax^2+bx+c=0 o f(x)) sin signos de dólar ($).
-  - EXPRESIONES ENTRE PARÉNTESIS: NUNCA escribas expresiones matemáticas dentro de paréntesis de texto como "($T = p \cdot q$)" ni "(T = p \cdot q)". Si la fórmula lleva paréntesis, inclúyelos siempre dentro de LaTeX: "$(T = p \cdot q)$" o simplemente escribe "$T = p \cdot q$".
+  - EXPRESIONES ENTRE PARÉNTESIS: NUNCA escribas expresiones matemáticas dentro de paréntesis de texto como "($T = p \cdot q$)" ni "(T = p \cdot q)". Si la fórmula lleva paréntesis, inclúyelos siempre dentro de los delimitadores matemáticos: "$(T = p \cdot q)$" o simplemente escribe "$T = p \cdot q$".
 
 * FÓRMULAS Y ECUACIONES DESTACADAS (DISPLAY):
   Toda fórmula principal, desarrollo paso a paso relevante o teorema en su propia línea DEBE estar enmarcado con doble signo de dólar ($$ ... $$):
@@ -106,8 +109,8 @@ Garantiza que ABSOLUTAMENTE TODAS las expresiones, ecuaciones, operaciones, vari
 
 * PASOS PROCEDIMENTALES (proceduralSteps):
   - "title": Título conciso del paso pedagógico.
-  - "explanation": Explicación didáctica completa, delimitando en LaTeX ($ ... $) cualquier variable o número matemático mencionado.
-  - "formulaOrCode": Debe contener ÚNICAMENTE la fórmula o cálculo algebraico en LaTeX puro (sin signos de dólar, sin explicaciones en español ni texto narrativo). Ejemplo: "x = \frac{-(-4) \pm \sqrt{(-4)^2 - 4(1)(3)}}{2(1)}" o "T = p \cdot q".
+  - "explanation": Explicación didáctica completa, delimitando con ($ ... $) cualquier variable o número matemático mencionado, sin usar la palabra LaTeX.
+  - "formulaOrCode": Debe contener ÚNICAMENTE la fórmula o cálculo algebraico rigurosamente formateado (sin signos de dólar, sin explicaciones en español ni texto narrativo). Ejemplo: "x = \\frac{-(-4) \\pm \\sqrt{(-4)^2 - 4(1)(3)}}{2(1)}" o "T = p \\cdot q".
 
 * MONEDA DOMINICANA (RD$) Y MILLARES:
   - Escribe "RD$ 50,000" o "RD$ 21,250" como texto normal fuera de delimitadores matemáticos. NUNCA coloques el signo de pesos "RD$" dentro de delimitadores matemáticos.
@@ -145,6 +148,95 @@ function sanitizeMathText(input: string): string {
 }
 
 /**
+ * Removes system prompt instructions, tone directions, and tutor configurations
+ * (e.g. "(lee con tono amable...)", "[con tono motivador]", "Lee con tono amable:", etc.)
+ * so text and audio strictly only deliver the pedagogical answer.
+ */
+function stripMetaAndToneInstructions(text: string): string {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    // Parenthetical instructions: (lee con tono amable...), (tono reflexivo), (voz tranquila), (configuración...), etc.
+    .replace(/\((?:lee con|le[eí]r? con|tono|con tono|habla con|voz|acotaci[oó]n|modo|indicaci[oó]n|estilo|configuraci[oó]n|instrucci[oó]n)[^)]*\)/gi, '')
+    // Bracketed instructions: [lee con tono amable], [tono motivador], [configuración...], etc.
+    .replace(/\[(?:lee con|le[eí]r? con|tono|con tono|habla con|voz|acotaci[oó]n|modo|indicaci[oó]n|estilo|configuraci[oó]n|instrucci[oó]n)[^\]]*\]/gi, '')
+    // Asterisk instructions: *lee con tono amable*, *tono pausado*, etc.
+    .replace(/\*(?:lee con|le[eí]r? con|tono|con tono|habla con|voz|acotaci[oó]n|modo|indicaci[oó]n|estilo|configuraci[oó]n|instrucci[oó]n)[^*]*\*/gi, '')
+    // Configuration / tone prefixes: "Configuración del tutor: ...", "Instrucciones: ...", "Modo: ..."
+    .replace(/(?:configuraci[oó]n(?: del tutor)?|instrucci[oó]n(?: para el tutor)?|modo de respuesta)\s*:\s*/gi, '')
+    // Leading tone commands: "Lee con tono amable: ...", "Tono amable: ...", "Lee con tono motivador...", etc.
+    .replace(/^(?:lee|habla|responde|le[eí]do)\s+(?:con\s+)?(?:un\s+)?tono\s+[a-záéíóúñ\s,]+[:.-]\s*/gi, '')
+    .replace(/^[\s\S]*?(?:lee con tono [^\n.:]*[.:]?\s*)/gi, '')
+    .replace(/^(?:tono amable|tono motivador|tono c[aá]lido|tono pausado|tono entusiasta|tono emp[aá]tico)[^\n.:]*[.:]?\s*/gi, '')
+    .replace(/^(?:Profesor|Profe Ornan|Tutor|Docente):\s*/gi, '')
+    // Filter out any accidental LaTeX meta-labels, tags or prefixes from generated text:
+    .replace(/\[(?:c[oó]digo\s+)?latex\]/gi, '')
+    .replace(/\((?:en\s+|c[oó]digo\s+)?latex\)/gi, '')
+    .replace(/\b(?:en\s+)?latex\s*:\s*/gi, '')
+    .replace(/\b(?:f[oó]rmula|c[oó]digo|expresi[oó]n)\s+(?:en\s+)?latex\b/gi, 'fórmula matemática')
+    .replace(/\b(?:escrita|formulada|expresada)\s+en\s+latex\b/gi, 'con formulación matemática')
+    .replace(/\blatex\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Recursively sanitizes all strings in a lesson plan object, normalizing LaTeX math expressions
+ * and stripping any lingering tone directions or configuration notes.
+ */
+function sanitizePlanMath(obj: any): any {
+  if (typeof obj === 'string') {
+    return sanitizeMathText(stripMetaAndToneInstructions(obj));
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizePlanMath);
+  }
+  if (obj && typeof obj === 'object') {
+    const res: any = {};
+    for (const key of Object.keys(obj)) {
+      res[key] = sanitizePlanMath(obj[key]);
+    }
+    return res;
+  }
+  return obj;
+}
+
+/**
+ * Cleans LaTeX and markdown notation so mathematical formulas are read
+ * naturally and phonetically in Spanish by the speech synthesizer.
+ */
+function cleanLatexForAudioTTS(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  const clean = stripMetaAndToneInstructions(raw);
+  return clean
+    .replace(/\$\$([\s\S]*?)\$\$/g, (_, m) => m)
+    .replace(/\$([^\$\n]+?)\$/g, (_, m) => m)
+    .replace(/\\left\(/g, '(')
+    .replace(/\\right\)/g, ')')
+    .replace(/\(([^)]*?=[^)]*?)\)/g, (_, m) => ` ${m} `)
+    .replace(/\\cdot/g, ' por ')
+    .replace(/\\times/g, ' por ')
+    .replace(/\\div/g, ' dividido entre ')
+    .replace(/\\pm/g, ' más o menos ')
+    .replace(/\\leq/g, ' menor o igual que ')
+    .replace(/\\geq/g, ' mayor o igual que ')
+    .replace(/\\neq/g, ' diferente de ')
+    .replace(/\\sqrt\{([^}]+)\}/g, 'raíz cuadrada de $1')
+    .replace(/\\sqrt\[([^\]]+)\]\{([^}]+)\}/g, 'raíz $1 de $2')
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1 sobre $2')
+    .replace(/\\Delta/g, 'delta')
+    .replace(/\\pi/g, 'pi')
+    .replace(/\^2/g, ' al cuadrado')
+    .replace(/\^3/g, ' al cubo')
+    .replace(/\^([0-9a-zA-Z]+)/g, ' elevado a la $1')
+    .replace(/_([0-9a-zA-Z]+)/g, ' sub $1')
+    .replace(/\\[a-zA-Z]+/g, '')
+    .replace(/[*#_`~]/g, '')
+    .replace(/[{}()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Checks if a string has non-LaTeX natural language words (3+ chars not in allowed math keywords)
  */
 function hasNaturalLanguageWords(str: string): boolean {
@@ -163,8 +255,8 @@ function hasNaturalLanguageWords(str: string): boolean {
  * Sanitizes and segregates procedural steps so formulaOrCode is strictly pure math
  */
 function cleanProceduralStep(step: any): any {
-  let title = sanitizeMathText(step.title || '');
-  let explanation = sanitizeMathText(step.explanation || '');
+  let title = stripMetaAndToneInstructions(sanitizeMathText(step.title || ''));
+  let explanation = stripMetaAndToneInstructions(sanitizeMathText(step.explanation || ''));
   let rawFormula = step.formulaOrCode ? sanitizeMathText(step.formulaOrCode).trim() : '';
 
   let formulaOrCode: string | undefined = undefined;
@@ -309,7 +401,7 @@ export async function callAiProvider({
     const messages: any[] = [
       {
         role: 'system',
-        content: `${systemInstruction}\n\nIMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido según la estructura requerida. Garantiza que TODAS las expresiones matemáticas utilicen LaTeX ($ ... $ para expresiones en línea y $$ ... $$ para fórmulas destacadas).`,
+        content: `${systemInstruction}\n\nIMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido según la estructura requerida. Garantiza que TODAS las expresiones matemáticas utilicen rigurosamente delimitadores ($ ... $ para expresiones en línea y $$ ... $$ para fórmulas destacadas). PROHIBIDO mencionar la palabra 'LaTeX' o meta-etiquetas en el texto generado.`,
       },
     ];
 
@@ -401,7 +493,7 @@ export async function callAiProvider({
       },
       body: JSON.stringify({
         model: model,
-        system: `${systemInstruction}\n\nIMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido según la estructura requerida, sin bloques de código ni texto adicional. Garantiza que TODAS las expresiones matemáticas utilicen LaTeX ($ ... $ y $$ ... $$).`,
+        system: `${systemInstruction}\n\nIMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido según la estructura requerida, sin bloques de código ni texto adicional. Garantiza que TODAS las expresiones matemáticas utilicen rigurosamente delimitadores ($ ... $ y $$ ... $$). PROHIBIDO mencionar la palabra 'LaTeX' o meta-etiquetas en el texto generado.`,
         messages: messages,
         max_tokens: 4096,
         temperature: temperature,
@@ -429,7 +521,7 @@ export async function callAiProvider({
     const messages: any[] = [
       {
         role: 'system',
-        content: `${systemInstruction}\n\nIMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido. Garantiza que TODAS las expresiones matemáticas utilicen LaTeX ($ ... $ y $$ ... $$).`,
+        content: `${systemInstruction}\n\nIMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido. Garantiza que TODAS las expresiones matemáticas utilicen rigurosamente delimitadores ($ ... $ y $$ ... $$). PROHIBIDO mencionar la palabra 'LaTeX' o meta-etiquetas en el texto generado.`,
       },
     ];
     const recentHistory = Array.isArray(history) ? history.slice(-8) : [];
@@ -475,7 +567,7 @@ export async function callAiProvider({
     const messages: any[] = [
       {
         role: 'system',
-        content: `${systemInstruction}\n\nIMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido. Garantiza que TODAS las expresiones matemáticas utilicen LaTeX ($ ... $ y $$ ... $$).`,
+        content: `${systemInstruction}\n\nIMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido. Garantiza que TODAS las expresiones matemáticas utilicen rigurosamente delimitadores ($ ... $ y $$ ... $$). PROHIBIDO mencionar la palabra 'LaTeX' o meta-etiquetas en el texto generado.`,
       },
     ];
     const recentHistory = Array.isArray(history) ? history.slice(-8) : [];
@@ -591,14 +683,14 @@ app.post('/api/chat', async (req, res) => {
 
 Devuelve SIEMPRE tu respuesta en formato JSON estricto con la siguiente estructura:
 {
-  "text": "Tu explicación principal clara, cálida y pedagógicamente rica para el estudiante o docente (admite formato Markdown estructurado con fórmulas LaTeX en $$ y $).",
+  "text": "Tu explicación principal clara, cálida y pedagógicamente rica para el estudiante o docente (admite formato Markdown estructurado con fórmulas matemáticas en $$ y $). NUNCA menciones la palabra LaTeX ni agregues etiquetas técnicas.",
   "socraticQuestion": "Una pregunta socrática reflexiva para evaluar o profundizar la comprensión del estudiante.",
   "proceduralSteps": [
     {
       "stepNumber": 1,
       "title": "Título breve del paso (si aplica a Matemática o Ciencia)",
-      "explanation": "Explicación del procedimiento delimitando variables en LaTeX con $",
-      "formulaOrCode": "Fórmula o cálculo en LaTeX puro sin explicaciones en texto (opcional)"
+      "explanation": "Explicación del procedimiento delimitando variables con $ (sin mencionar la palabra LaTeX)",
+      "formulaOrCode": "Fórmula o cálculo matemático puro delimitado sin explicaciones en texto (opcional)"
     }
   ],
   "artifact": {
@@ -612,7 +704,7 @@ REGLAS PARA EL ARTEFACTO ("artifact"):
 - Si el usuario pide graficar o dibujar (como una parábola en el plano cartesiano, una recta o cualquier figura): genera type "graph_plot" con title, plotType: "parabola" | "function" | "geometry", xMin: -6, xMax: 6, yMin: -6, yMax: 6, functions: [{ "expression": "x*x - 4*x + 3", "latexLabel": "f(x) = x^2 - 4x + 3", "color": "#2563eb", "strokeWidth": 3 }], points: [ { "x": 2, "y": -1, "label": "V(2, -1)", "color": "#dc2626" }, { "x": 1, "y": 0, "label": "x_1(1, 0)", "color": "#16a34a" }, { "x": 3, "y": 0, "label": "x_2(3, 0)", "color": "#16a34a" }, { "x": 0, "y": 3, "label": "Y(0, 3)", "color": "#d97706" } ], keyFeatures: { "vertex": { "x": 2, "y": -1 }, "roots": [1, 3], "yIntercept": 3, "axisOfSymmetry": 2, "discriminant": 4, "concavity": "hacia arriba" }, interactiveSliders: [ { "param": "a", "label": "Apertura (a)", "min": -4, "max": 4, "step": 0.5, "defaultValue": 1 }, { "param": "b", "label": "Desplazamiento (b)", "min": -8, "max": 8, "step": 0.5, "defaultValue": -4 }, { "param": "c", "label": "Intersección Y (c)", "min": -8, "max": 8, "step": 0.5, "defaultValue": 3 } ]
 - Si el tema es histórico o cronológico: genera type "timeline" con eventos clave, fechas y figuras dominicanas.
 - Si el usuario o el tema amerita evaluación: genera type "quiz" con 3-4 preguntas de opción múltiple, explicaciones y contexto dominicano.
-- Si es Matemática o Ciencias exactas con ejercicios: genera type "math_step" con pasos secuenciales detallados y fórmulas en LaTeX.
+- Si es Matemática o Ciencias exactas con ejercicios: genera type "math_step" con pasos secuenciales detallados y fórmulas matemáticas rigurosas.
 - Si es un concepto con relaciones: genera type "mindmap" con nodos conectados.
 - Si es vocabulario o literatura: genera type "flashcards" o "dominican_glossary".
 - Si el rol es Docente: genera type "teacher_plan" con competencias MINERD, situación de aprendizaje y secuencia didáctica.
@@ -629,8 +721,8 @@ REGLAS PARA EL ARTEFACTO ("artifact"):
 
     const parsedData = parseJsonFromAiResponse(rawResponse);
 
-    let textResult = sanitizeMathText(parsedData.text || rawResponse);
-    let socraticResult = parsedData.socraticQuestion ? sanitizeMathText(parsedData.socraticQuestion) : null;
+    let textResult = stripMetaAndToneInstructions(sanitizeMathText(parsedData.text || rawResponse));
+    let socraticResult = parsedData.socraticQuestion ? stripMetaAndToneInstructions(sanitizeMathText(parsedData.socraticQuestion)) : null;
     let proceduralStepsResult = Array.isArray(parsedData.proceduralSteps)
       ? parsedData.proceduralSteps.map((step: any) => cleanProceduralStep(step))
       : null;
@@ -915,8 +1007,8 @@ app.post('/api/tts', async (req, res) => {
       return;
     }
 
-    // Keep text concise and clean for TTS
-    const speechText = text.length > 550 ? text.substring(0, 547) + '...' : text;
+    // Keep text concise, spoken-friendly, and strictly pedagogical (never include configuration, instructions, or tone commands)
+    const cleanSpeechText = cleanLatexForAudioTTS(text).slice(0, 520);
     const maleVoice = ['Fenrir', 'Puck', 'Charon', 'Orus'].includes(voice) ? voice : 'Fenrir';
 
     // 1. If OpenAI provider is configured with key
@@ -931,7 +1023,7 @@ app.post('/api/tts', async (req, res) => {
           },
           body: JSON.stringify({
             model: 'tts-1',
-            input: speechText,
+            input: cleanSpeechText,
             voice: 'onyx', // Masculine voice in OpenAI
           }),
         });
@@ -966,8 +1058,8 @@ app.post('/api/tts', async (req, res) => {
 
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash-tts',
-        contents: [{ parts: [{ text: `Lee con tono amable, claro y pedagógico de profesor particular con voz masculina: ${speechText}` }] }],
+        model: 'gemini-3.8-flash-lite-tts',
+        contents: [{ parts: [{ text: cleanSpeechText }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
@@ -1031,7 +1123,7 @@ Devuelve tu respuesta en formato JSON con la siguiente estructura:
 {
   "detectedContent": "Descripción precisa de lo que ves en la imagen (ej: 'Operación de suma de fracciones escrita a mano en libreta escolar')",
   "diagnosis": "Diagnóstico pedagógico: ¿está correcto? ¿dónde está el error si lo hay?",
-  "pedagogicalExplanation": "Explicación detallada y paso a paso para el estudiante con contexto dominicano y todas las expresiones matemáticas en LaTeX ($).",
+  "pedagogicalExplanation": "Explicación detallada y paso a paso para el estudiante con contexto dominicano y todas las expresiones matemáticas delimitadas con $ sin mencionar la palabra LaTeX.",
   "correctSteps": [
     "Paso 1...",
     "Paso 2..."
@@ -1069,7 +1161,7 @@ app.post('/api/teacher-plan', async (req, res) => {
   try {
     const { subject, grade, topic, duration = '45 minutos', providerConfig } = req.body;
 
-    const teacherSystem = `Eres un asesor curricular de alto nivel pedagógico experto en el Diseño Curricular del Ministerio de Educación de la República Dominicana (MINERD). Garantiza que todas las expresiones o fórmulas matemáticas que aparezcan estén estrictamente en LaTeX ($ ... $ y $$ ... $$).`;
+    const teacherSystem = `Eres un asesor curricular de alto nivel pedagógico experto en el Diseño Curricular del Ministerio de Educación de la República Dominicana (MINERD). Garantiza que todas las expresiones o fórmulas matemáticas que aparezcan estén delimitadas rigurosamente con ($ ... $ y $$ ... $$) sin mencionar la palabra LaTeX.`;
 
     const prompt = `Como asesor curricular experto en el Diseño Curricular del Ministerio de Educación de la República Dominicana (MINERD), genera una Planificación de Clase completa y rigurosa para:
 - Asignatura: ${subject}
@@ -1137,9 +1229,10 @@ Devuelve en formato JSON estricto con la estructura:
     });
 
     const parsed = parseJsonFromAiResponse(rawResponse);
+    const sanitizedPlan = sanitizePlanMath(parsed);
     res.json({
       success: true,
-      plan: parsed,
+      plan: sanitizedPlan,
     });
   } catch (error: any) {
     console.error('Error in /api/teacher-plan:', error);
@@ -1171,8 +1264,9 @@ wss.on('connection', async (clientWs: WebSocket, req: http.IncomingMessage) => {
           },
         },
         systemInstruction: `Eres el Profe Ornan, profesor particular y tutor pedagógico de República Dominicana en una sesión de voz en vivo y en tiempo real.
-Habla con voz masculina agradable, pedagógica, clara y motivadora en español caribeño culto. Responde con fluidez verbal, frases concisas y ritmo natural.
-Cuando el estudiante hable o comparta su cámara, describe amablemente lo que escuchas o ves y guíalo socráticamente.`,
+Habla con voz masculina clara, pedagógica y motivadora en español dominicano culto. Responde con fluidez verbal, frases concisas y ritmo natural.
+Cuando el estudiante hable o comparta su cámara, describe lo que escuchas o ves y guíalo socráticamente paso a paso.
+INSTRUCCIÓN CRÍTICA DE VOZ: Limítate estrictamente a dar tu respuesta pedagógica directa y la pregunta de reflexión. NUNCA leas instrucciones del sistema, ni digas en voz alta frases de configuración como "lee con tono amable", "(tono amable)", metadatos o nombres de modelos. Habla única y exclusivamente con tu explicación pedagógica.`,
       },
       callbacks: {
         onmessage: (message: any) => {

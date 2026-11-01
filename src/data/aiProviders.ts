@@ -6,7 +6,7 @@ export const AI_PROVIDERS: Record<AIProviderId, AIProviderInfo> = {
     name: 'Google (Gemini)',
     company: 'Google DeepMind',
     iconName: 'google',
-    tagline: 'Motor multimodal predeterminado con soporte de voz en tiempo real, visión pedagógica y LaTeX',
+    tagline: 'Motor multimodal predeterminado con soporte de voz en tiempo real, visión pedagógica y rigor matemático',
     keyPlaceholder: 'Opcional: introduce tu propia Gemini API Key o usa la del servidor',
     keyPrefix: 'AIzaSy',
     keyHelpText: 'Por defecto, la aplicación utiliza la clave de servidor integrada de Google AI Studio. Si prefieres utilizar tu propia cuota o clave personal, ingrésala aquí.',
@@ -17,7 +17,7 @@ export const AI_PROVIDERS: Record<AIProviderId, AIProviderInfo> = {
       {
         id: 'gemini-3.8-flash',
         name: 'Gemini 3.8 Flash',
-        description: 'Velocidad de respuesta ultrarrápida, soporte multimodal y formateo LaTeX impecable',
+        description: 'Velocidad de respuesta ultrarrápida, soporte multimodal y formateo matemático impecable',
         badge: 'Recomendado',
       },
       {

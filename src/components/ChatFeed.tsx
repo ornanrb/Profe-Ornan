@@ -16,7 +16,7 @@ import {
   FileDown,
 } from 'lucide-react';
 import { ChatMessage, MediaAttachment, ProceduralStep, TeacherLessonPlan } from '../types';
-import { PcmAudioPlayer, speakWithBrowserSpeech } from '../utils/audioUtils';
+import { PcmAudioPlayer, speakWithBrowserSpeech, stripMetaAndToneInstructions } from '../utils/audioUtils';
 import { MathMarkdown, MathFormula, StepFormulaView } from './MathRenderer';
 import { LaTeXRenderer } from './LaTeXRenderer';
 import { downloadLessonPlanAsWord } from '../utils/wordExport';
@@ -76,12 +76,13 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
         return;
       }
 
-      // 2. Fetch server-side TTS from Gemini 3.1 Flash TTS
+      // 2. Fetch server-side TTS from Gemini Flash TTS
+      const cleanSpoken = stripMetaAndToneInstructions(msg.text);
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: msg.text.slice(0, 450), // keep spoken utterance crisp
+          text: cleanSpoken.slice(0, 450), // keep spoken utterance crisp
           voice: 'Fenrir', // Voz masculina de Gemini (Fenrir)
         }),
       });
@@ -97,7 +98,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
       } else {
         // Fallback to browser Web Speech API
         speakWithBrowserSpeech(
-          msg.text,
+          cleanSpoken,
           () => setPlayingMessageId(msg.id),
           () => setPlayingMessageId(null)
         );
@@ -106,7 +107,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
       console.warn('TTS API error, falling back to speech synthesis:', e);
       setIsSynthesizing(false);
       speakWithBrowserSpeech(
-        msg.text,
+        stripMetaAndToneInstructions(msg.text),
         () => setPlayingMessageId(msg.id),
         () => setPlayingMessageId(null)
       );

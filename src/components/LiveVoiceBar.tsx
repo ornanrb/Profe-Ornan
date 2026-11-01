@@ -18,6 +18,7 @@ import {
   PcmAudioPlayer,
   float32ToPcm16Base64,
   speakWithBrowserSpeech,
+  stripMetaAndToneInstructions,
 } from '../utils/audioUtils';
 
 interface LiveVoiceBarProps {
@@ -46,7 +47,6 @@ export const LiveVoiceBar: React.FC<LiveVoiceBarProps> = ({
   const [lastModelResponse, setLastModelResponse] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [voiceProviderNotice, setVoiceProviderNotice] = useState<string>('Fenrir (Voz Gemini Masculina)');
   const [manualText, setManualText] = useState<string>('');
   const [isSpeechRecognitionSupported, setIsSpeechRecognitionSupported] = useState<boolean>(true);
   const [isListeningActive, setIsListeningActive] = useState<boolean>(false);
@@ -122,9 +122,13 @@ export const LiveVoiceBar: React.FC<LiveVoiceBarProps> = ({
         });
 
         const data = await res.json();
-        const teacherText: string = data.text || 'Entiendo tu consulta. Continuemos analizando este tema paso a paso.';
-        const socratic: string = data.socraticQuestion || '';
-        const fullSpokenUtterance = socratic ? `${teacherText} ${socratic}` : teacherText;
+        const rawTeacherText: string = data.text || 'Entiendo tu consulta. Continuemos analizando este tema paso a paso.';
+        const rawSocratic: string = data.socraticQuestion || '';
+        const teacherText = stripMetaAndToneInstructions(rawTeacherText);
+        const socratic = stripMetaAndToneInstructions(rawSocratic);
+        const fullSpokenUtterance = stripMetaAndToneInstructions(
+          socratic ? `${teacherText} ${socratic}` : teacherText
+        );
 
         setLastModelResponse(teacherText);
 
@@ -154,9 +158,6 @@ export const LiveVoiceBar: React.FC<LiveVoiceBarProps> = ({
 
           const ttsData = await ttsRes.json();
           if (ttsData.success && ttsData.audioBase64) {
-            setVoiceProviderNotice(
-              ttsData.voiceType ? `Voz: ${ttsData.voiceType}` : 'Voz: Fenrir (Gemini Masculina)'
-            );
             audioPlayerRef.current.playChunk(ttsData.audioBase64, () => {
               setStatus('listening');
               setTranscript('¡Listo! Te escucho. Puedes responder o preguntar otra duda.');
@@ -169,7 +170,6 @@ export const LiveVoiceBar: React.FC<LiveVoiceBarProps> = ({
         }
 
         // 2. Local speech synthesis with serene masculine timbre
-        setVoiceProviderNotice('Voz: Profe Ornan (Masculina)');
         const cancelSpeech = speakWithBrowserSpeech(
           fullSpokenUtterance,
           () => {
@@ -655,12 +655,6 @@ export const LiveVoiceBar: React.FC<LiveVoiceBarProps> = ({
                   : status === 'connecting'
                   ? 'Iniciando Diálogo por Voz...'
                   : 'Listo para Hablar'}
-              </span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-950 text-blue-300 font-mono border border-blue-800">
-                {voiceProviderNotice}
-              </span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 font-mono border border-emerald-800 hidden sm:inline">
-                Diálogo Multimodal Dominicano
               </span>
             </div>
 

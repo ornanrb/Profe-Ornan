@@ -437,9 +437,9 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                         Formato Oficial Docente
                       </span>
                     </div>
-                    <span className="font-bold text-slate-900 text-sm block leading-tight">
-                      {plan.title || artifact.title}
-                    </span>
+                    <div className="font-bold text-slate-900 text-sm block leading-tight">
+                      <LaTeXRenderer content={plan.title || artifact.title} />
+                    </div>
                     <span className="text-slate-600 text-xs mt-0.5 block">
                       {plan.subject} • {plan.grade} • Tiempo: <span className="font-semibold text-slate-800">{plan.duration}</span>
                     </span>
@@ -474,18 +474,11 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                 </div>
 
                 {/* Institutional Note */}
-                <div className="px-3 py-2 bg-blue-50/70 border border-blue-200/80 rounded-xl text-slate-700 text-xs flex items-center justify-between">
+                <div className="px-3.5 py-2.5 bg-blue-50/70 border border-blue-200/80 rounded-xl text-slate-700 text-xs flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-blue-700 font-bold">📄 Documento Word Editable:</span>
-                    <span>Descarga el archivo estructurado con tablas, encabezado oficial del MINERD, rúbrica y firmas.</span>
+                    <span className="text-blue-700 font-bold">📄 Documento Word Editable Oficial:</span>
+                    <span>Estructurado con encabezado oficial del MINERD, competencias, situación de aprendizaje, fases didácticas, rúbrica analítica y firmas.</span>
                   </div>
-                  <button
-                    onClick={() => handleDownloadWord(plan)}
-                    disabled={isDownloadingWord}
-                    className="text-blue-700 hover:text-blue-900 font-bold underline text-[11px] shrink-0"
-                  >
-                    Bajar .docx
-                  </button>
                 </div>
 
                 {/* Competencias Fundamentales */}
@@ -496,7 +489,9 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                   </h4>
                   <ul className="list-disc list-inside space-y-1 text-slate-700 pl-1">
                     {(plan.fundamentalCompetencies || []).map((c, i) => (
-                      <li key={i} className="leading-snug">{c}</li>
+                      <li key={i} className="leading-snug">
+                        <LaTeXRenderer content={c} />
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -510,7 +505,9 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     </h4>
                     <ul className="list-disc list-inside space-y-1 text-slate-700 pl-1">
                       {plan.specificCompetencies.map((c, i) => (
-                        <li key={i} className="leading-snug">{c}</li>
+                        <li key={i} className="leading-snug">
+                          <LaTeXRenderer content={c} />
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -522,7 +519,9 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                     <h4 className="font-bold text-blue-950 mb-1 flex items-center gap-1.5">
                       Situación de Aprendizaje Contextualizada:
                     </h4>
-                    <p className="text-slate-800 leading-relaxed italic">{plan.learningSituation}</p>
+                    <div className="text-slate-800 leading-relaxed italic text-xs">
+                      <LaTeXRenderer content={plan.learningSituation} />
+                    </div>
                   </div>
                 )}
 
@@ -547,21 +546,27 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           <span className="font-bold text-slate-900 block text-[11px] mb-1">
                             👨‍🏫 Actividad de Enseñanza (Docente):
                           </span>
-                          <p className="leading-relaxed text-[11px]">{seq.teacherActivity}</p>
+                          <div className="leading-relaxed text-[11px]">
+                            <LaTeXRenderer content={seq.teacherActivity} />
+                          </div>
                         </div>
                         <div className="bg-slate-50/60 p-2.5 rounded-lg border border-slate-100">
                           <span className="font-bold text-slate-900 block text-[11px] mb-1">
                             🧑‍🎓 Actividad de Aprendizaje (Estudiante):
                           </span>
-                          <p className="leading-relaxed text-[11px]">{seq.studentActivity}</p>
+                          <div className="leading-relaxed text-[11px]">
+                            <LaTeXRenderer content={seq.studentActivity} />
+                          </div>
                         </div>
                       </div>
                       {seq.resources && (
                         <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-1.5 text-[11px] text-slate-500">
-                          <span className="font-semibold text-slate-700">Recursos:</span>
-                          <span>
-                            {Array.isArray(seq.resources) ? seq.resources.join(', ') : seq.resources}
-                          </span>
+                          <span className="font-semibold text-slate-700 shrink-0">Recursos:</span>
+                          <div className="flex-1">
+                            <LaTeXRenderer
+                              content={Array.isArray(seq.resources) ? seq.resources.join(', ') : seq.resources}
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
@@ -589,19 +594,19 @@ export const ArtifactViewer: React.FC<ArtifactViewerProps> = ({
                           {plan.evaluationRubric.map((r, i) => (
                             <tr key={i} className="hover:bg-slate-50/50">
                               <td className="p-2.5 font-bold text-slate-900 align-top bg-slate-50/30">
-                                {r.indicator}
+                                <LaTeXRenderer content={r.indicator} />
                               </td>
                               <td className="p-2 text-slate-600 align-top">
-                                {r.levels?.receptive || '—'}
+                                <LaTeXRenderer content={r.levels?.receptive || '—'} />
                               </td>
                               <td className="p-2 text-slate-700 align-top">
-                                {r.levels?.basic || '—'}
+                                <LaTeXRenderer content={r.levels?.basic || '—'} />
                               </td>
                               <td className="p-2 text-slate-800 align-top font-medium">
-                                {r.levels?.autonomous || '—'}
+                                <LaTeXRenderer content={r.levels?.autonomous || '—'} />
                               </td>
                               <td className="p-2 text-purple-900 align-top font-semibold">
-                                {r.levels?.strategic || '—'}
+                                <LaTeXRenderer content={r.levels?.strategic || '—'} />
                               </td>
                             </tr>
                           ))}

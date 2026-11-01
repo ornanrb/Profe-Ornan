@@ -57,7 +57,7 @@ export const WelcomeHero: React.FC<WelcomeHeroProps> = ({
           ¿Qué quieres aprender hoy con el Profe Ornan?
         </h1>
         <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto mb-6">
-          Tu tutor pedagógico particular inteligente especializado en el currículo nacional dominicano. Conversa por voz en tiempo real, comparte tu cámara para revisar tareas y libretas con formulación matemática rigurosa en LaTeX.
+          Tu tutor pedagógico particular inteligente especializado en el currículo nacional dominicano. Conversa por voz en tiempo real, comparte tu cámara para revisar tareas y libretas con formulación matemática rigurosa y didáctica.
         </p>
 
         {/* Prominent Gemini Live Voice Action */}
